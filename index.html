@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BJA Kurir">
+<title>BJA Kurir</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#d4162e; --red-d:#a50f22; --red-t:#fdecee; --ink:#151515; --ink2:#3a3a3a; --mut:#767676;
+  --line:#e7e7e7; --bg:#f4f4f4; --card:#fff; --ok:#1f8a4c; --ok-t:#e6f4ec; --warn:#b26a00; --warn-t:#fff3df;
+  --blue:#1d5fbf; --blue-t:#e8f0fb;
+  --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--bg)}
+/* top bar */
+.top{position:sticky;top:0;z-index:20;background:#111;color:#fff;padding:calc(12px + var(--st)) 16px 12px;display:flex;align-items:center;gap:12px}
+.top .back{background:none;border:0;color:#fff;font-size:22px;padding:0 6px 0 0;cursor:pointer;line-height:1}
+.top .ttl{flex:1;min-width:0}
+.top .ttl b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .ttl small{color:#bdbdbd;font-size:12px}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--red);display:grid;place-items:center;font-weight:800;font-size:12px;letter-spacing:.5px;flex:none}
+.top .act{background:#262626;border:0;color:#fff;border-radius:9px;padding:7px 10px;font-size:13px;cursor:pointer}
+.demo{background:var(--warn-t);color:var(--warn);font-size:12px;text-align:center;padding:6px 12px;border-bottom:1px solid #f1dfbf}
+main{flex:1;padding:14px 14px calc(96px + var(--sb))}
+/* cards */
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid var(--line)}
+.h{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:18px 2px 8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer}
+.stat b{display:block;font-size:22px;line-height:1.1}
+.stat span{font-size:11px;color:var(--mut)}
+.stat.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.task{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.task .no{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.task .bd{flex:1;min-width:0}
+.task .nm{font-weight:700;font-size:15.5px}
+.task .ad{color:var(--ink2);font-size:13px;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.task .mt{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:600;white-space:nowrap}
+.chip:before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.s-siap{background:#efefef;color:#555}.s-jalan{background:var(--blue-t);color:var(--blue)}
+.s-terkirim{background:var(--ok-t);color:var(--ok)}.s-gagal{background:var(--red-t);color:var(--red-d)}
+.tag{font-size:12px;color:var(--mut);background:#f6f6f6;border-radius:6px;padding:2px 7px}
+.tag.warn{background:var(--warn-t);color:var(--warn)}
+.empty{text-align:center;color:var(--mut);padding:40px 10px}
+/* detail */
+.cust b{font-size:18px}
+.row{display:flex;gap:8px;margin-top:12px}
+.btn{flex:1;border:0;border-radius:12px;padding:13px 12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;font-size:15px}
+.btn.sm{padding:9px 8px;font-size:13px;border-radius:10px;white-space:nowrap;gap:5px}
+.b-dark{background:var(--ink);color:#fff}.b-red{background:var(--red);color:#fff}
+.b-ok{background:var(--ok);color:#fff}.b-line{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+.b-blue{background:var(--blue);color:#fff}
+.btn:disabled{opacity:.45}
+table{width:100%;border-collapse:collapse}
+td,th{padding:9px 4px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:top}
+th{font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+td.q,th.q{text-align:right;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:14px}
+.kv span{color:var(--mut)}
+.tl{list-style:none;margin:0;padding:0}
+.tl li{position:relative;padding:0 0 12px 20px;font-size:13.5px}
+.tl li:before{content:"";position:absolute;left:4px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--ink)}
+.tl li:after{content:"";position:absolute;left:7.5px;top:16px;bottom:0;width:1px;background:var(--line)}
+.tl li:last-child:after{display:none}
+.tl small{color:var(--mut)}
+.proof{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.proof img{width:100%;border-radius:10px;border:1px solid var(--line);background:#fafafa;aspect-ratio:4/3;object-fit:cover}
+.proof .sig{object-fit:contain;background:#fff}
+/* bottom action bar */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:25;background:#fff;border-top:1px solid var(--line);padding:10px 14px calc(10px + var(--sb))}
+.bar .in{max-width:492px;margin:0 auto;display:flex;gap:8px}
+/* sheet */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(16px + var(--sb))}
+.sheet h3{margin:0 0 4px;font-size:18px}
+.sheet .sub{color:var(--mut);font-size:13px;margin-bottom:14px}
+label.f{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+input.i,select.i,textarea.i{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;outline:none}
+input.i:focus,select.i:focus,textarea.i:focus{border-color:var(--ink)}
+textarea.i{min-height:70px;resize:vertical}
+.pick{border:1.5px dashed #c9c9c9;border-radius:12px;padding:14px;text-align:center;color:var(--ink2);cursor:pointer;display:block;background:#fafafa}
+.pick img{max-width:100%;max-height:220px;border-radius:8px;display:block;margin:0 auto}
+.pad{border:1.5px solid var(--line);border-radius:12px;background:#fff;touch-action:none;width:100%;height:170px;display:block}
+.padtools{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mut);margin-top:4px}
+.linkbtn{background:none;border:0;color:var(--red);font-weight:600;cursor:pointer;font-size:13px;padding:4px}
+.opts{display:grid;gap:8px}
+.opt{border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;cursor:pointer;display:flex;gap:10px;align-items:center}
+.opt.on{border-color:var(--red);background:var(--red-t)}
+.gps{font-size:13px;border-radius:10px;padding:10px 12px;margin-top:14px}
+.gps.ok{background:var(--ok-t);color:var(--ok)}.gps.no{background:var(--warn-t);color:var(--warn)}.gps.wait{background:#f2f2f2;color:var(--mut)}
+.err{color:var(--red-d);font-size:13px;margin-top:10px;min-height:1px}
+/* login */
+.login{padding:28px 18px}
+.hero{background:#111;color:#fff;border-radius:18px;padding:22px 18px;margin-bottom:16px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:var(--red);opacity:.9}
+.hero h1{margin:10px 0 2px;font-size:24px;position:relative;z-index:1}
+.hero p{margin:0;color:#c9c9c9;font-size:13.5px;position:relative;z-index:1}
+.hero .logo{position:relative;z-index:1}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:#e9e9e9;border-radius:11px;padding:3px;margin-bottom:14px}
+.seg button{border:0;background:none;padding:9px;border-radius:9px;font-weight:600;cursor:pointer;color:var(--ink2)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.pinrow{display:flex;gap:8px;justify-content:center;margin:6px 0 4px}
+.pinrow i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ink)}
+.pinrow i.f{background:var(--ink)}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.keys button{border:0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px;font-size:20px;font-weight:600;cursor:pointer}
+.hint{font-size:12px;color:var(--mut);text-align:center;margin-top:10px}
+/* admin */
+.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;scrollbar-width:none}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-weight:600;font-size:13px;white-space:nowrap;cursor:pointer}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.kr{display:flex;align-items:center;gap:10px}
+.kr .av{width:36px;height:36px;border-radius:50%;background:var(--red-t);color:var(--red-d);display:grid;place-items:center;font-weight:800;flex:none}
+.kr .bd{flex:1;min-width:0}
+.prog{height:7px;border-radius:9px;background:#eee;overflow:hidden;display:flex;margin-top:6px}
+.prog i{display:block;height:100%}
+.mini{font-size:12px;color:var(--mut)}
+.dt{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.dt input{flex:1}
+.toast{position:fixed;left:50%;bottom:calc(90px + var(--sb));transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:60;max-width:90%;text-align:center}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+/* =====================================================================
+   KONFIGURASI — isi untuk mode LIVE (Supabase). Kosong = mode DEMO.
+   ===================================================================== */
+const CONFIG = {
+  supabaseUrl: 'https://ibrntiqyntlazffgrgix.supabase.co',
+  anonKey: 'sb_publishable_uDoaxLZ6qOOYdXZN_SlhmQ_TXUSszR6',   // kunci publik (aman di browser, tabel dilindungi RLS)
+  bucket: 'bukti-kirim'
+};
+const LIVE = !!(CONFIG.supabaseUrl && CONFIG.anonKey);
+
+/* ---------- util ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtQty = n => (n == null || n === '') ? '' : Number(n).toLocaleString('id-ID', {maximumFractionDigits: 2});
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const jam = t => t ? new Date(t).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) : '';
+const tglLabel = s => new Date(s + 'T00:00:00').toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long'});
+const ST = {siap:'Siap kirim', jalan:'Dalam perjalanan', terkirim:'Terkirim', gagal:'Gagal kirim'};
+const chip = s => `<span class="chip s-${s}">${ST[s]}</span>`;
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('bjak_' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('bjak_' + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem('bjak_' + k); } catch (e) {} }
+};
+function toast(m) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
+const mapsUrl = p => p.maps_url ? p.maps_url : (p.lat && p.lng) ? `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`
+  : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((p.alamat || '') + ' ' + (p.customer_nama || ''))}`;
+const waUrl = hp => 'https://wa.me/' + String(hp || '').replace(/\D/g, '').replace(/^0/, '62');
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'x' + Date.now() + Math.random().toString(16).slice(2));
+
+/* =====================================================================
+   DATA LAYER
+   ===================================================================== */
+const Live = {
+  async rpc(fn, args) {
+    const r = await fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/${fn}`, {
+      method: 'POST',
+      headers: {apikey: CONFIG.anonKey, Authorization: 'Bearer ' + CONFIG.anonKey, 'Content-Type': 'application/json'},
+      body: JSON.stringify(args || {})
+    });
+    const txt = await r.text();
+    if (!r.ok) { let m = txt; try { m = JSON.parse(txt).message || m; } catch (e) {} throw new Error(m); }
+    return txt ? JSON.parse(txt) : null;
+  },
+  async upload(blob, ext) {
+    const path = `${today()}/${uid()}.${ext}`;
+    const r = await fetch(`${CONFIG.supabaseUrl}/storage/v1/object/${CONFIG.bucket}/${path}`, {
+      method: 'POST', headers: {apikey: CONFIG.anonKey, Authorization: 'Bearer ' + CONFIG.anonKey, 'Content-Type': blob.type}, body: blob
+    });
+    if (!r.ok) throw new Error('Upload gagal: ' + (await r.text()));
+    return path;
+  },
+  fileUrl: p => p ? `${CONFIG.supabaseUrl}/storage/v1/object/public/${CONFIG.bucket}/${p}` : '',
+  kurirDaftar: () => Live.rpc('kurir_daftar'),
+  login: (id, pin) => Live.rpc('kurir_login', {p_kurir_id: id, p_pin: pin}),
+  tugas: (tok, tgl) => Live.rpc('kurir_tugas', {p_token: tok, p_tanggal: tgl}),
+  update: (tok, a) => Live.rpc('kurir_update', {p_token: tok, p_id: a.id, p_status: a.status, p_lat: a.lat ?? null, p_lng: a.lng ?? null,
+    p_penerima: a.penerima ?? null, p_foto_path: a.foto ?? null, p_ttd_path: a.ttd ?? null, p_alasan: a.alasan ?? null, p_catatan: a.catatan ?? null}),
+  monitor: (pw, tgl) => Live.rpc('admin_monitor', {p_pass: pw, p_tanggal: tgl}),
+  tarik: (pw, tgl) => Live.rpc('admin_tarik_invoice', {p_pass: pw, p_tanggal: tgl}),
+  assign: (pw, id, k, u) => Live.rpc('admin_assign', {p_pass: pw, p_id: id, p_kurir_id: k, p_urutan: u}),
+  custList: pw => Live.rpc('admin_customer_list', {p_pass: pw}),
+  custSave: (pw, c) => Live.rpc('admin_customer_simpan', {p_pass: pw, p: c})
+};
+
+/* ---------- DEMO: data contoh, disimpan di browser ---------- */
+const Demo = (() => {
+  const KURIR = [{id:1, nama:'Asep', hp:'081234560001'}, {id:2, nama:'Dedi', hp:'081234560002'}, {id:3, nama:'Ujang', hp:'081234560003'}];
+  const CUST = [
+    {nama:'RM Sate Pak Haji', alamat:'Jl. Pajajaran No. 112, Bantarjati, Bogor Utara', hp:'081311110001', patokan:'Seberang SPBU, parkir belakang', lat:-6.5823, lng:106.8095},
+    {nama:'Steakhouse Sentul', alamat:'Ruko Sentul City Blok B2 No. 8, Babakan Madang', hp:'081311110002', patokan:'Masuk lewat pintu dapur samping', lat:-6.5652, lng:106.8603},
+    {nama:'Warung Bakso Mang Udin', alamat:'Jl. Suryakencana No. 45, Babakan Pasar, Bogor Tengah', hp:'081311110003', patokan:'', lat:-6.6046, lng:106.7996},
+    {nama:'Katering Berkah Rasa', alamat:'Perum Bogor Nirwana Residence, Jl. Kencana Sakti 3 No. 17', hp:'081311110004', patokan:'Terima barang jam 07–10 saja', lat:-6.6301, lng:106.8132},
+    {nama:'Hotel Puncak Asri', alamat:'Jl. Raya Puncak KM 82, Cisarua', hp:'081311110005', patokan:'Bagian receiving, minta tanda tangan chef', lat:-6.6876, lng:106.9478},
+    {nama:'Resto Sunda Ciapus', alamat:'Jl. Raya Ciapus No. 9, Tamansari', hp:'081311110006', patokan:'', lat:-6.6312, lng:106.7671},
+    {nama:'Burger Bros Dramaga', alamat:'Jl. Raya Dramaga No. 201, Babakan Raya', hp:'081311110007', patokan:'Dekat gerbang kampus', lat:-6.5596, lng:106.7349},
+    {nama:'Toko Frozen Ibu Rina', alamat:'', hp:'', patokan:''}
+  ];
+  const PROD = [['Daging Sapi Slice Shortplate','kg'],['Tenderloin Sapi','kg'],['Sirloin Sapi','kg'],['Brisket','kg'],['Iga Sapi','kg'],
+    ['Daging Giling Premium','kg'],['Topside','kg'],['Lidah Sapi','kg'],['Buntut Sapi','kg'],['Sosis Sapi 500g','pack'],['Beef Burger Patty 10s','pack']];
+  function seed(tgl) {
+    let s = 7;
+    const rnd = n => { s = (s * 9301 + 49297) % 233280; return Math.floor(s / 233280 * n); };
+    const plan = [[1,1],[1,2],[1,3],[2,4],[2,5],[2,6],[3,7],[null,8],[null,3]];
+    const tasks = plan.map(([k, c], i) => {
+      const cu = CUST[c - 1], n = 2 + rnd(3), used = new Set(), items = [];
+      while (items.length < n) { const p = PROD[rnd(PROD.length)]; if (used.has(p[0])) continue; used.add(p[0]);
+        items.push({produk: p[0], qty: p[1] === 'kg' ? (2 + rnd(18)) + (rnd(2) ? 0.5 : 0) : 5 + rnd(20), unit: p[1]}); }
+      return {id: 'd' + (i + 1), no_invoice: 'INV/BJA/' + tgl.replace(/-/g, '').slice(2) + '/' + String(101 + i), tanggal: tgl,
+        customer_nama: cu.nama, alamat: cu.alamat, hp: cu.hp, patokan: cu.patokan, lat: cu.lat, lng: cu.lng,
+        catatan_order: i === 4 ? 'Barang wajib cold box, suhu < -10°C' : '', kurir_id: k, urutan: k ? (i % 3) + 1 : null,
+        status: 'siap', items, log: [{status: 'siap', waktu: tgl + 'T06:30:00+07:00', oleh: 'Admin', catatan: 'Dibuat dari invoice'}]};
+    });
+    // contoh progres supaya monitor admin terlihat hidup
+    const t0 = tasks[0]; t0.status = 'terkirim'; t0.waktu_jalan = tgl + 'T08:05:00+07:00'; t0.waktu_selesai = tgl + 'T08:41:00+07:00';
+    t0.penerima = 'Pak Haji Amin'; t0.gps_lat = -6.58231; t0.gps_lng = 106.80948;
+    t0.log.push({status:'jalan', waktu:t0.waktu_jalan, oleh:'Asep'}, {status:'terkirim', waktu:t0.waktu_selesai, oleh:'Asep', catatan:'Diterima Pak Haji Amin'});
+    const t3 = tasks[3]; t3.status = 'jalan'; t3.waktu_jalan = tgl + 'T07:40:00+07:00'; t3.log.push({status:'jalan', waktu:t3.waktu_jalan, oleh:'Dedi'});
+    const t6 = tasks[6]; t6.status = 'gagal'; t6.waktu_jalan = tgl + 'T09:00:00+07:00'; t6.waktu_selesai = tgl + 'T09:35:00+07:00'; t6.alasan_gagal = 'Toko tutup';
+    t6.log.push({status:'jalan', waktu:t6.waktu_jalan, oleh:'Ujang'}, {status:'gagal', waktu:t6.waktu_selesai, oleh:'Ujang', catatan:'Toko tutup'});
+    return tasks;
+  }
+  let db = store.get('demo', null);
+  if (!db || db.v !== 2) db = {v: 2, cust: CUST, days: {}};
+  const day = tgl => (db.days[tgl] ||= seed(tgl));
+  const save = () => store.set('demo', db);
+  const files = {};
+  const kName = id => (KURIR.find(k => k.id === id) || {}).nama;
+  const pack = t => ({...t, kurir_nama: kName(t.kurir_id)});
+  const wait = (v, ms = 250) => new Promise(r => setTimeout(() => r(v), ms));
+  return {
+    fileUrl: p => files[p] || p || '',
+    async upload(blob) { const url = await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(blob); }); return url; },
+    kurirDaftar: () => wait(KURIR.map(({id, nama}) => ({id, nama}))),
+    async login(id, pin) { if (pin !== '1234') throw new Error('PIN salah (demo: 1234)'); return wait({token: 'demo-' + id, id, nama: kName(id)}); },
+    async tugas(tok, tgl) { const k = +String(tok).split('-')[1]; return wait(day(tgl).filter(t => t.kurir_id === k)
+      .sort((a, b) => (a.urutan || 99) - (b.urutan || 99)).map(pack)); },
+    async update(tok, a) {
+      const k = +String(tok).split('-')[1]; const t = Object.values(db.days).flat().find(x => x.id === a.id && x.kurir_id === k);
+      if (!t) throw new Error('Tugas tidak ditemukan');
+      if (a.status === 'terkirim' && (!a.foto || !a.ttd)) throw new Error('Foto dan tanda tangan wajib');
+      if (a.status === 'gagal' && !a.alasan) throw new Error('Alasan gagal wajib');
+      const now = new Date().toISOString();
+      t.status = a.status;
+      if (a.status === 'jalan') t.waktu_jalan = now;
+      t.waktu_selesai = ['terkirim', 'gagal'].includes(a.status) ? now : null;
+      if (a.penerima) t.penerima = a.penerima;
+      if (a.foto) t.foto_path = a.foto; if (a.ttd) t.ttd_path = a.ttd;
+      if (a.lat != null) { t.gps_lat = a.lat; t.gps_lng = a.lng; }
+      t.alasan_gagal = a.status === 'gagal' ? a.alasan : null;
+      if (a.catatan) t.catatan_kurir = a.catatan;
+      t.log.push({status: a.status, waktu: now, oleh: kName(k), catatan: a.alasan || a.catatan || (a.penerima ? 'Diterima ' + a.penerima : '')});
+      // foto besar tidak disimpan ke localStorage agar tidak penuh
+      const lite = JSON.parse(JSON.stringify(db)); Object.values(lite.days).flat().forEach(x => { if (String(x.foto_path).startsWith('data:')) x.foto_path = ''; });
+      try { localStorage.setItem('bjak_demo', JSON.stringify(lite)); } catch (e) {}
+      return wait(pack(t));
+    },
+    async monitor(pw, tgl) { if (pw !== 'admin') throw new Error('Password salah (demo: admin)'); return wait({kurir: KURIR, tugas: day(tgl).map(pack)}); },
+    async tarik(pw, tgl) { day(tgl); save(); return wait(0, 500); },
+    async assign(pw, id, k, u) { const t = Object.values(db.days).flat().find(x => x.id === id); t.kurir_id = k; t.urutan = u; save(); return wait(null); },
+    async custList() { return wait([...db.cust].sort((a, b) => a.nama.localeCompare(b.nama))); },
+    async custSave(pw, c) {
+      const i = db.cust.findIndex(x => x.nama.toLowerCase() === c.nama.toLowerCase());
+      if (i >= 0) db.cust[i] = {...db.cust[i], ...c}; else db.cust.push(c);
+      Object.values(db.days).flat().filter(t => t.customer_nama.toLowerCase() === c.nama.toLowerCase() && ['siap', 'jalan'].includes(t.status))
+        .forEach(t => Object.assign(t, {alamat: c.alamat, hp: c.hp, patokan: c.patokan, lat: c.lat, lng: c.lng}));
+      save(); return wait(null);
+    }
+  };
+})();
+const API = LIVE ? Live : Demo;
+
+/* =====================================================================
+   STATE & ROUTER
+   ===================================================================== */
+const S = {
+  sess: store.get('sess', null),       // {token,id,nama} kurir
+  admin: store.get('admin', null),     // password admin (disimpan di perangkat admin)
+  mode: 'kurir', tgl: today(), tugas: [], filter: 'semua', view: 'list', cur: null,
+  mon: null, atab: 'ringkas', cust: null, kurirList: null, pin: '', pickK: null
+};
+function render() {
+  const el = $('#app');
+  if (!S.sess && !S.admin) return el.innerHTML = viewLogin();
+  if (S.admin && S.mode === 'admin') return el.innerHTML = viewAdmin();
+  if (S.view === 'detail' && S.cur) return el.innerHTML = viewDetail();
+  el.innerHTML = viewList();
+}
+const demoBar = () => LIVE ? '' : `<div class="demo">Mode demo · data contoh, tersimpan di HP ini saja</div>`;
+const topBar = (title, sub, back, act) => `<div class="top">${back ? `<button class="back" onclick="${back}">‹</button>` : `<div class="logo">BJA</div>`}
+  <div class="ttl"><b>${title}</b><small>${sub || ''}</small></div>${act || ''}</div>${demoBar()}`;
+
+/* ---------- LOGIN ---------- */
+function viewLogin() {
+  if (!S.kurirList) { API.kurirDaftar().then(l => { S.kurirList = l; render(); }).catch(e => toast(e.message)); }
+  const isAdm = S.loginTab === 'admin';
+  return `<div class="login">
+    <div class="hero"><div class="logo">BJA</div><h1>BJA Kurir</h1><p>Status pengiriman frozen meat — daftar antar, detail item, bukti terima.</p></div>
+    ${demoBar()}
+    <div class="seg" style="margin-top:12px"><button class="${isAdm ? '' : 'on'}" onclick="S.loginTab='kurir';render()">Kurir</button>
+      <button class="${isAdm ? 'on' : ''}" onclick="S.loginTab='admin';render()">Admin / Gudang</button></div>
+    ${isAdm ? `<div class="card"><label class="f" style="margin-top:0">Password admin</label>
+        <input class="i" id="apw" type="password" placeholder="${LIVE ? '' : 'demo: admin'}" onkeydown="if(event.key==='Enter')loginAdmin()">
+        <div class="err" id="lerr"></div><div class="row"><button class="btn b-dark" onclick="loginAdmin()">Masuk</button></div></div>`
+    : `<div class="card"><label class="f" style="margin-top:0">Pilih nama kurir</label>
+        <select class="i" id="kpick" onchange="S.pickK=+this.value;S.pin='';render()">
+          <option value="">— pilih —</option>${(S.kurirList || []).map(k => `<option value="${k.id}" ${S.pickK === k.id ? 'selected' : ''}>${esc(k.nama)}</option>`).join('')}
+        </select>
+        ${S.pickK ? `<label class="f">Masukkan PIN</label>
+          <div class="pinrow">${[0,1,2,3].map(i => `<i class="${S.pin.length > i ? 'f' : ''}"></i>`).join('')}</div>
+          <div class="keys">${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(k => k === '' ? '<span></span>' : `<button onclick="pinKey('${k}')">${k}</button>`).join('')}</div>` : ''}
+        <div class="err" id="lerr"></div>
+        ${LIVE ? '' : '<div class="hint">Demo: PIN semua kurir 1234</div>'}</div>`}
+  </div>`;
+}
+async function pinKey(k) {
+  if (k === '⌫') S.pin = S.pin.slice(0, -1); else if (S.pin.length < 4) S.pin += k;
+  render();
+  if (S.pin.length === 4) {
+    try { S.sess = await API.login(S.pickK, S.pin); store.set('sess', S.sess); S.pin = ''; S.mode = 'kurir'; loadTugas(); }
+    catch (e) { S.pin = ''; render(); $('#lerr').textContent = e.message; }
+  }
+}
+async function loginAdmin() {
+  const pw = $('#apw').value;
+  try { S.mon = await API.monitor(pw, S.tgl); S.admin = pw; store.set('admin', pw); S.mode = 'admin'; render(); }
+  catch (e) { $('#lerr').textContent = e.message; }
+}
+function logout() { S.sess = null; S.admin = null; store.del('sess'); store.del('admin'); S.view = 'list'; S.mode = 'kurir'; render(); }
+
+/* ---------- KURIR: DAFTAR ---------- */
+async function loadTugas() {
+  try { S.tugas = await API.tugas(S.sess.token, S.tgl); }
+  catch (e) { if (/sesi/i.test(e.message)) return logout(); toast(e.message); }
+  if (S.cur) S.cur = S.tugas.find(t => t.id === S.cur.id) || null;
+  render();
+}
+function viewList() {
+  const c = {semua: S.tugas.length}; ['siap', 'jalan', 'terkirim', 'gagal'].forEach(s => c[s] = S.tugas.filter(t => t.status === s).length);
+  const aktif = S.tugas.filter(t => S.filter === 'semua' || (S.filter === 'aktif' ? ['siap','jalan'].includes(t.status) : t.status === S.filter));
+  const st = (k, lbl) => `<div class="stat ${S.filter === k ? 'on' : ''}" onclick="S.filter='${k}';render()"><b>${c[k] ?? 0}</b><span>${lbl}</span></div>`;
+  const totItem = S.tugas.reduce((a, t) => a + t.items.length, 0);
+  return topBar('Halo, ' + esc(S.sess.nama), tglLabel(S.tgl), '', `${S.admin ? `<button class="act" onclick="S.mode='admin';render()">Admin</button>` : ''}<button class="act" onclick="logout()">Keluar</button>`) +
+  `<main>
+    <div class="dt"><input type="date" class="i" value="${S.tgl}" onchange="S.tgl=this.value;loadTugas()"><button class="btn sm b-line" style="flex:none" onclick="loadTugas()">↻</button></div>
+    <div class="stats">${st('semua','Total')}${st('jalan','Jalan')}${st('terkirim','Terkirim')}${st('gagal','Gagal')}</div>
+    <div class="mini" style="margin:4px 2px 0">${c.semua} titik antar · ${totItem} baris item${c.siap ? ` · ${c.siap} belum berangkat` : ''}</div>
+    <div class="h">${S.filter === 'semua' ? 'Rute hari ini' : ST[S.filter] || ''}</div>
+    ${aktif.length ? aktif.map((t, i) => `<div class="card task" onclick="openTask('${t.id}')">
+        <div class="no" style="${t.status === 'terkirim' ? 'background:var(--ok)' : t.status === 'gagal' ? 'background:var(--red)' : ''}">${t.status === 'terkirim' ? '✓' : t.status === 'gagal' ? '!' : (t.urutan || i + 1)}</div>
+        <div class="bd"><div class="nm">${esc(t.customer_nama)}</div>
+          <div class="ad">${t.alamat ? esc(t.alamat) : '<span style="color:var(--warn)">Alamat belum diisi — hubungi admin</span>'}</div>
+          <div class="mt">${chip(t.status)}<span class="tag">${t.items.length} item</span><span class="tag">${esc(t.no_invoice)}</span>${t.catatan_order ? '<span class="tag warn">Catatan</span>' : ''}</div></div>
+      </div>`).join('') : `<div class="empty">Tidak ada pengiriman${S.filter !== 'semua' ? ' dengan status ini' : ' untuk tanggal ini'}.</div>`}
+  </main>`;
+}
+function openTask(id) { S.cur = S.tugas.find(t => t.id === id); S.view = 'detail'; render(); scrollTo(0, 0); }
+
+/* ---------- KURIR: DETAIL ---------- */
+function proofHtml(t) {
+  if (!t.foto_path && !t.ttd_path && !t.gps_lat) return '';
+  return `<div class="card"><div class="h" style="margin-top:0">Bukti ${t.status === 'gagal' ? 'kunjungan' : 'terima'}</div>
+    <div class="kv">${t.penerima ? `<span>Penerima</span><b>${esc(t.penerima)}</b>` : ''}
+      ${t.waktu_selesai ? `<span>Waktu</span><div>${jam(t.waktu_selesai)}</div>` : ''}
+      ${t.gps_lat ? `<span>Lokasi GPS</span><a href="https://www.google.com/maps?q=${t.gps_lat},${t.gps_lng}" target="_blank" rel="noopener">${(+t.gps_lat).toFixed(5)}, ${(+t.gps_lng).toFixed(5)}</a>` : ''}
+      ${t.alasan_gagal ? `<span>Alasan gagal</span><b style="color:var(--red-d)">${esc(t.alasan_gagal)}</b>` : ''}
+      ${t.catatan_kurir ? `<span>Catatan</span><div>${esc(t.catatan_kurir)}</div>` : ''}</div>
+    ${(t.foto_path || t.ttd_path) ? `<div class="proof">${t.foto_path ? `<img src="${API.fileUrl(t.foto_path)}" alt="Foto">` : '<div></div>'}${t.ttd_path ? `<img class="sig" src="${API.fileUrl(t.ttd_path)}" alt="Tanda tangan">` : ''}</div>` : ''}</div>`;
+}
+function itemsHtml(t) {
+  return `<table><tr><th>Produk</th><th class="q">Qty</th></tr>${t.items.map(i => `<tr><td>${esc(i.produk)}</td><td class="q"><b>${fmtQty(i.qty)}</b> ${esc(i.unit || '')}</td></tr>`).join('')}</table>`;
+}
+function custHtml(t, withBtn = true) {
+  return `<div class="card cust"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><b>${esc(t.customer_nama)}</b>${chip(t.status)}</div>
+    <div style="margin-top:6px;color:var(--ink2)">${t.alamat ? esc(t.alamat) : '<span style="color:var(--warn)">Alamat belum diisi di master customer</span>'}</div>
+    ${t.patokan ? `<div class="mini" style="margin-top:4px">📍 ${esc(t.patokan)}</div>` : ''}
+    ${t.hp ? `<div class="mini" style="margin-top:4px">☎ ${esc(t.hp)}</div>` : ''}
+    ${withBtn ? `<div class="row"><a class="btn sm b-line" href="${mapsUrl(t)}" target="_blank" rel="noopener">🧭 Navigasi</a>
+      ${t.hp ? `<a class="btn sm b-line" href="${waUrl(t.hp)}" target="_blank" rel="noopener">💬 WhatsApp</a><a class="btn sm b-line" href="tel:${esc(t.hp)}">📞 Telepon</a>` : ''}</div>` : ''}</div>`;
+}
+function logHtml(t) {
+  return `<ul class="tl">${(t.log || []).map(l => `<li><b>${ST[l.status] || l.status}</b> · ${jam(l.waktu)} <small>oleh ${esc(l.oleh || '-')}</small>${l.catatan ? `<br><small>${esc(l.catatan)}</small>` : ''}</li>`).join('')}</ul>`;
+}
+function viewDetail() {
+  const t = S.cur;
+  let actions = '';
+  if (t.status === 'siap') actions = `<button class="btn b-dark" onclick="setStatus('jalan')">🚚 Mulai antar</button>`;
+  else if (t.status === 'jalan') actions = `<button class="btn b-line" style="flex:.8" onclick="openGagal()">Gagal</button><button class="btn b-ok" onclick="openTerima()">✓ Terkirim</button>`;
+  else actions = `<button class="btn b-line" onclick="koreksi()">Ubah status</button>`;
+  return topBar(esc(t.customer_nama), esc(t.no_invoice), "S.view='list';S.cur=null;render()") +
+  `<main>
+    ${custHtml(t)}
+    ${t.catatan_order ? `<div class="card" style="background:var(--warn-t);border-color:#f1dfbf;color:var(--warn)"><b>Catatan order:</b> ${esc(t.catatan_order)}</div>` : ''}
+    <div class="card"><div class="h" style="margin-top:0">Barang yang dibawa · ${t.items.length} item</div>${itemsHtml(t)}</div>
+    ${proofHtml(t)}
+    <div class="card"><div class="h" style="margin-top:0">Riwayat status</div>${logHtml(t)}</div>
+  </main>
+  <div class="bar"><div class="in">${actions}</div></div>`;
+}
+
+/* ---------- GPS ---------- */
+let GPS = null;
+function ambilGps(cb) {
+  GPS = {state: 'wait'}; cb && cb();
+  if (!navigator.geolocation) { GPS = {state: 'no', msg: 'GPS tidak didukung perangkat'}; return cb && cb(); }
+  navigator.geolocation.getCurrentPosition(
+    p => { GPS = {state: 'ok', lat: p.coords.latitude, lng: p.coords.longitude, acc: Math.round(p.coords.accuracy)}; cb && cb(); },
+    e => { GPS = {state: 'no', msg: e.code === 1 ? 'Izin lokasi ditolak — aktifkan lokasi untuk aplikasi ini' : 'Lokasi tidak didapat'}; cb && cb(); },
+    {enableHighAccuracy: true, timeout: 12000, maximumAge: 30000});
+}
+const gpsHtml = () => !GPS ? '' : GPS.state === 'ok' ? `<div class="gps ok">📍 Lokasi terekam (akurasi ±${GPS.acc} m)</div>`
+  : GPS.state === 'wait' ? `<div class="gps wait">Mengambil lokasi GPS…</div>`
+  : `<div class="gps no">⚠ ${GPS.msg}. <button class="linkbtn" onclick="ambilGps(refreshGps)">Coba lagi</button></div>`;
+function refreshGps() { const g = $('#gpsbox'); if (g) g.innerHTML = gpsHtml(); }
+
+async function setStatus(status, extra = {}) {
+  ambilGps();
+  await new Promise(r => setTimeout(r, 50));
+  try {
+    const t = await API.update(S.sess.token, {id: S.cur.id, status, lat: GPS && GPS.lat, lng: GPS && GPS.lng, ...extra});
+    const i = S.tugas.findIndex(x => x.id === t.id); S.tugas[i] = t; S.cur = t; render(); toast(ST[status]);
+  } catch (e) { toast(e.message); }
+}
+function koreksi() {
+  sheet(`<h3>Ubah status</h3><div class="sub">Gunakan bila salah tekan. Perubahan tercatat di riwayat.</div>
+    <div class="opts">${['jalan','terkirim','gagal'].filter(s => s !== S.cur.status).map(s => `<div class="opt" onclick="closeSheet();${s === 'jalan' ? "setStatus('jalan')" : s === 'terkirim' ? 'openTerima()' : 'openGagal()'}">${chip(s)}</div>`).join('')}</div>
+    <div class="row"><button class="btn b-line" onclick="closeSheet()">Batal</button></div>`);
+}
+
+/* ---------- SHEET ---------- */
+function sheet(html) { closeSheet(); const o = document.createElement('div'); o.className = 'ov'; o.id = 'ov';
+  o.innerHTML = `<div class="sheet">${html}</div>`; o.onclick = e => { if (e.target === o) closeSheet(); }; document.body.appendChild(o); }
+function closeSheet() { const o = $('#ov'); if (o) o.remove(); }
+
+/* ---------- FOTO (kompres ±900px) ---------- */
+let FOTO = null;
+function compress(file) {
+  return new Promise((res, rej) => {
+    const img = new Image(); img.onload = () => {
+      const m = 900, s = Math.min(1, m / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      const g = c.getContext('2d'); g.drawImage(img, 0, 0, c.width, c.height);
+      g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, c.height - 30, c.width, 30); g.fillStyle = '#fff'; g.font = '15px sans-serif';
+      g.fillText(`${S.cur.no_invoice} · ${new Date().toLocaleString('id-ID')}${GPS && GPS.lat ? ` · ${GPS.lat.toFixed(5)},${GPS.lng.toFixed(5)}` : ''}`, 10, c.height - 10);
+      c.toBlob(b => b ? res(b) : rej(new Error('Gagal memproses foto')), 'image/jpeg', 0.62);
+    };
+    img.onerror = () => rej(new Error('File bukan gambar')); img.src = URL.createObjectURL(file);
+  });
+}
+async function onFoto(inp) {
+  const f = inp.files[0]; if (!f) return;
+  try { FOTO = await compress(f); $('#fprev').innerHTML = `<img src="${URL.createObjectURL(FOTO)}"><div class="mini" style="margin-top:6px">Ketuk untuk ganti foto · ${Math.round(FOTO.size / 1024)} KB</div>`; }
+  catch (e) { toast(e.message); }
+}
+const fotoPicker = req => `<label class="f">Foto barang diterima ${req ? '<span style="color:var(--red)">*</span>' : '(opsional)'}</label>
+  <label class="pick" id="fprev">📷 Ambil foto<div class="mini">Foto barang + penerima / lokasi</div></label>
+  <input type="file" accept="image/*" capture="environment" id="finp" style="display:none" onchange="onFoto(this)">`;
+function bindFoto() { $('#fprev').onclick = e => { e.preventDefault(); $('#finp').click(); }; }
+
+/* ---------- TANDA TANGAN ---------- */
+let PAD = null;
+function initPad() {
+  const c = $('#pad'), r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  c.width = r.width * dpr; c.height = r.height * dpr;
+  const g = c.getContext('2d'); g.scale(dpr, dpr); g.lineWidth = 2.4; g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = '#111';
+  PAD = {c, g, dirty: false, down: false};
+  const pt = e => { const b = c.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+  c.onpointerdown = e => { c.setPointerCapture(e.pointerId); PAD.down = true; const [x, y] = pt(e); g.beginPath(); g.moveTo(x, y); g.lineTo(x + .1, y + .1); g.stroke(); PAD.dirty = true; };
+  c.onpointermove = e => { if (!PAD.down) return; const [x, y] = pt(e); g.lineTo(x, y); g.stroke(); };
+  c.onpointerup = c.onpointercancel = () => PAD.down = false;
+}
+function clearPad() { PAD.g.clearRect(0, 0, PAD.c.width, PAD.c.height); PAD.dirty = false; }
+const padBlob = () => new Promise(r => {
+  const o = document.createElement('canvas'); o.width = PAD.c.width; o.height = PAD.c.height;
+  const g = o.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, o.width, o.height); g.drawImage(PAD.c, 0, 0);
+  o.toBlob(r, 'image/png');
+});
+
+/* ---------- TERKIRIM ---------- */
+function openTerima() {
+  FOTO = null; ambilGps(refreshGps);
+  sheet(`<h3>Konfirmasi terkirim</h3><div class="sub">${esc(S.cur.customer_nama)} · ${S.cur.items.length} item</div>
+    <label class="f" style="margin-top:0">Nama penerima <span style="color:var(--red)">*</span></label>
+    <input class="i" id="pen" placeholder="Nama yang menerima barang">
+    ${fotoPicker(true)}
+    <label class="f">Tanda tangan penerima <span style="color:var(--red)">*</span></label>
+    <canvas class="pad" id="pad"></canvas><div class="padtools"><span>Tanda tangan di kotak</span><button class="linkbtn" onclick="clearPad()">Hapus</button></div>
+    <label class="f">Catatan (opsional)</label><textarea class="i" id="cat" placeholder="mis. 1 dus diterima security"></textarea>
+    <div id="gpsbox">${gpsHtml()}</div>
+    <div class="err" id="serr"></div>
+    <div class="row"><button class="btn b-line" style="flex:.6" onclick="closeSheet()">Batal</button><button class="btn b-ok" id="sbtn" onclick="kirimTerima()">Simpan terkirim</button></div>`);
+  bindFoto(); initPad();
+}
+async function kirimTerima() {
+  const pen = $('#pen').value.trim(), err = $('#serr');
+  if (!pen) return err.textContent = 'Isi nama penerima.';
+  if (!FOTO) return err.textContent = 'Ambil foto barang diterima.';
+  if (!PAD.dirty) return err.textContent = 'Minta tanda tangan penerima.';
+  const b = $('#sbtn'); b.disabled = true; b.innerHTML = '<span class="spin"></span> Mengunggah…';
+  try {
+    const [foto, ttd] = await Promise.all([API.upload(FOTO, 'jpg'), padBlob().then(bl => API.upload(bl, 'png'))]);
+    await setStatus('terkirim', {penerima: pen, foto, ttd, catatan: $('#cat').value.trim() || null, lat: GPS && GPS.lat, lng: GPS && GPS.lng});
+    closeSheet();
+  } catch (e) { err.textContent = e.message; b.disabled = false; b.textContent = 'Simpan terkirim'; }
+}
+
+/* ---------- GAGAL ---------- */
+const ALASAN = ['Toko / customer tutup', 'Customer tidak di tempat', 'Alamat tidak ditemukan', 'Barang ditolak / retur', 'Kendaraan bermasalah', 'Lainnya'];
+let PILIH = null;
+function openGagal() {
+  FOTO = null; PILIH = null; ambilGps(refreshGps);
+  sheet(`<h3>Gagal kirim</h3><div class="sub">${esc(S.cur.customer_nama)} · barang dibawa kembali ke gudang</div>
+    <label class="f" style="margin-top:0">Alasan <span style="color:var(--red)">*</span></label>
+    <div class="opts">${ALASAN.map((a, i) => `<div class="opt" data-i="${i}" onclick="PILIH=${i};document.querySelectorAll('.opt').forEach(o=>o.classList.toggle('on',+o.dataset.i===${i}))">${a}</div>`).join('')}</div>
+    <label class="f">Keterangan</label><textarea class="i" id="cat" placeholder="mis. sudah telepon 2x tidak diangkat"></textarea>
+    ${fotoPicker(false)}
+    <div id="gpsbox">${gpsHtml()}</div>
+    <div class="err" id="serr"></div>
+    <div class="row"><button class="btn b-line" style="flex:.6" onclick="closeSheet()">Batal</button><button class="btn b-red" id="sbtn" onclick="kirimGagal()">Simpan gagal</button></div>`);
+  bindFoto();
+}
+async function kirimGagal() {
+  const err = $('#serr'), cat = $('#cat').value.trim();
+  if (PILIH == null) return err.textContent = 'Pilih alasan.';
+  if (ALASAN[PILIH] === 'Lainnya' && !cat) return err.textContent = 'Tulis keterangan untuk alasan "Lainnya".';
+  const b = $('#sbtn'); b.disabled = true; b.innerHTML = '<span class="spin"></span> Menyimpan…';
+  try {
+    const foto = FOTO ? await API.upload(FOTO, 'jpg') : null;
+    await setStatus('gagal', {alasan: ALASAN[PILIH], catatan: cat || null, foto, lat: GPS && GPS.lat, lng: GPS && GPS.lng});
+    closeSheet();
+  } catch (e) { err.textContent = e.message; b.disabled = false; b.textContent = 'Simpan gagal'; }
+}
+
+/* =====================================================================
+   ADMIN
+   ===================================================================== */
+async function loadMon() {
+  try { S.mon = await API.monitor(S.admin, S.tgl); } catch (e) { if (/password/i.test(e.message)) return logout(); toast(e.message); }
+  render();
+}
+function viewAdmin() {
+  const m = S.mon || {kurir: [], tugas: []}, T = m.tugas;
+  const cnt = s => T.filter(t => t.status === s).length;
+  const tabs = [['ringkas','Ringkasan'],['tugas','Semua kiriman'],['assign',`Belum ada kurir (${T.filter(t => !t.kurir_id).length})`],['cust','Master customer']];
+  let body = '';
+  if (S.atab === 'ringkas') {
+    body = `<div class="stats">${[['semua','Total',T.length],['jalan','Jalan',cnt('jalan')],['terkirim','Terkirim',cnt('terkirim')],['gagal','Gagal',cnt('gagal')]]
+      .map(([k, l, v]) => `<div class="stat" onclick="S.atab='tugas';S.afil='${k}';render()"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+      <div class="h">Progres per kurir</div>
+      ${m.kurir.map(k => { const kt = T.filter(t => t.kurir_id === k.id), n = kt.length || 1;
+        const w = s => (kt.filter(t => t.status === s).length / n * 100) + '%';
+        const last = kt.filter(t => t.waktu_selesai || t.waktu_jalan).sort((a, b) => new Date(b.waktu_selesai || b.waktu_jalan) - new Date(a.waktu_selesai || a.waktu_jalan))[0];
+        return `<div class="card"><div class="kr"><div class="av">${esc(k.nama[0])}</div><div class="bd"><b>${esc(k.nama)}</b>
+          <div class="mini">${kt.filter(t => t.status === 'terkirim').length}/${kt.length} terkirim${kt.filter(t => t.status === 'gagal').length ? ` · ${kt.filter(t => t.status === 'gagal').length} gagal` : ''}${last ? ` · terakhir: ${esc(last.customer_nama)} ${jam(last.waktu_selesai || last.waktu_jalan)}` : ''}</div>
+          <div class="prog"><i style="width:${w('terkirim')};background:var(--ok)"></i><i style="width:${w('gagal')};background:var(--red)"></i><i style="width:${w('jalan')};background:var(--blue)"></i></div></div></div></div>`; }).join('')}
+      ${T.filter(t => t.status === 'gagal').length ? `<div class="h">Perlu tindak lanjut</div>${T.filter(t => t.status === 'gagal').map(adminRow).join('')}` : ''}`;
+  } else if (S.atab === 'tugas') {
+    const f = S.afil || 'semua'; const L = T.filter(t => f === 'semua' || t.status === f);
+    body = `<div class="tabs">${['semua','siap','jalan','terkirim','gagal'].map(s => `<button class="${f === s ? 'on' : ''}" onclick="S.afil='${s}';render()">${s === 'semua' ? 'Semua' : ST[s]}</button>`).join('')}</div>
+      ${L.length ? L.map(adminRow).join('') : '<div class="empty">Tidak ada data.</div>'}`;
+  } else if (S.atab === 'assign') {
+    const L = T.filter(t => !t.kurir_id);
+    body = `<div class="card mini">Tugas kirim dibuat otomatis dari invoice di Data Penjualan. Pilih kurir untuk tiap invoice; urutan antar bisa diatur dengan angka.</div>
+      ${L.length ? L.map(t => `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(t.customer_nama)}</b><span class="tag">${esc(t.no_invoice)}</span></div>
+        <div class="mini" style="margin:4px 0 10px">${t.alamat ? esc(t.alamat) : '<span style="color:var(--warn)">⚠ Alamat kosong — isi di Master customer</span>'} · ${t.items.length} item</div>
+        <div class="row" style="margin-top:0"><select class="i" id="ak_${t.id}"><option value="">Pilih kurir</option>${m.kurir.map(k => `<option value="${k.id}">${esc(k.nama)}</option>`).join('')}</select>
+        <input class="i" id="au_${t.id}" type="number" min="1" placeholder="Urutan" style="max-width:90px">
+        <button class="btn sm b-dark" style="flex:none" onclick="assign('${t.id}')">Simpan</button></div></div>`).join('')
+      : '<div class="empty">Semua invoice sudah punya kurir ✓</div>'}`;
+  } else if (S.atab === 'cust') {
+    if (!S.cust) API.custList(S.admin).then(c => { S.cust = c; render(); });
+    const q = (S.cq || '').toLowerCase(), C = (S.cust || []).filter(c => c.nama.toLowerCase().includes(q));
+    body = `<div class="dt"><input class="i" placeholder="Cari customer…" value="${esc(S.cq || '')}" oninput="S.cq=this.value;clearTimeout(window._cq);window._cq=setTimeout(()=>{render();const x=document.querySelector('.dt input');x.focus();x.setSelectionRange(99,99)},250)">
+      <button class="btn sm b-red" style="flex:none" onclick="editCust(-1)">+ Baru</button></div>
+      <div class="mini" style="margin:0 2px 10px">${(S.cust || []).filter(c => !c.alamat).length} customer belum punya alamat</div>
+      ${C.map(c => `<div class="card" onclick="editCust('${esc(c.nama).replace(/'/g, "\\'")}')" style="cursor:pointer"><b>${esc(c.nama)}</b>
+        <div class="mini">${c.alamat ? esc(c.alamat) : '<span style="color:var(--warn)">⚠ Alamat belum diisi</span>'}</div>
+        <div class="mini">${c.hp ? '☎ ' + esc(c.hp) : ''}${c.lat ? ' · 📍 titik peta ada' : ''}</div></div>`).join('')}`;
+  }
+  return topBar('Monitor Pengiriman', tglLabel(S.tgl), '', `${S.sess ? `<button class="act" onclick="S.mode='kurir';render()">Kurir</button>` : ''}<button class="act" onclick="logout()">Keluar</button>`) +
+  `<main><div class="dt"><input type="date" class="i" value="${S.tgl}" onchange="S.tgl=this.value;loadMon()">
+     <button class="btn sm b-line" style="flex:none" onclick="tarik()">⤓ Tarik invoice</button><button class="btn sm b-line" style="flex:none" onclick="loadMon()">↻</button></div>
+   <div class="tabs">${tabs.map(([k, l]) => `<button class="${S.atab === k ? 'on' : ''}" onclick="S.atab='${k}';render()">${l}</button>`).join('')}</div>
+   ${body}</main>`;
+}
+function adminRow(t) {
+  return `<div class="card task" onclick="adminDetail('${t.id}')"><div class="bd">
+    <div style="display:flex;justify-content:space-between;gap:8px"><div class="nm">${esc(t.customer_nama)}</div>${chip(t.status)}</div>
+    <div class="mini">${esc(t.no_invoice)} · ${t.kurir_nama ? 'Kurir ' + esc(t.kurir_nama) : '<span style="color:var(--warn)">belum ada kurir</span>'} · ${t.items.length} item
+    ${t.waktu_selesai ? ' · ' + jam(t.waktu_selesai) : t.waktu_jalan ? ' · berangkat ' + jam(t.waktu_jalan) : ''}</div>
+    ${t.alasan_gagal ? `<div class="mini" style="color:var(--red-d)">Alasan: ${esc(t.alasan_gagal)}</div>` : ''}</div></div>`;
+}
+function adminDetail(id) {
+  const t = S.mon.tugas.find(x => x.id === id);
+  sheet(`<h3>${esc(t.no_invoice)}</h3><div class="sub">${t.kurir_nama ? 'Kurir ' + esc(t.kurir_nama) : 'Belum ada kurir'}</div>
+    ${custHtml(t, false)}<div class="card"><div class="h" style="margin-top:0">Item</div>${itemsHtml(t)}</div>${proofHtml(t)}
+    <div class="card"><div class="h" style="margin-top:0">Riwayat</div>${logHtml(t)}</div>
+    <div class="card"><div class="h" style="margin-top:0">Pindahkan kurir</div><div class="row" style="margin-top:0">
+      <select class="i" id="ak_${t.id}">${S.mon.kurir.map(k => `<option value="${k.id}" ${k.id === t.kurir_id ? 'selected' : ''}>${esc(k.nama)}</option>`).join('')}</select>
+      <input class="i" id="au_${t.id}" type="number" value="${t.urutan || ''}" placeholder="Urutan" style="max-width:90px">
+      <button class="btn sm b-dark" style="flex:none" onclick="assign('${t.id}').then(closeSheet)">Simpan</button></div></div>
+    <div class="row"><button class="btn b-line" onclick="closeSheet()">Tutup</button></div>`);
+}
+async function assign(id) {
+  const k = +$('#ak_' + id).value, u = +$('#au_' + id).value || null;
+  if (!k) return toast('Pilih kurir dulu');
+  try { await API.assign(S.admin, id, k, u); toast('Tersimpan'); await loadMon(); } catch (e) { toast(e.message); }
+}
+async function tarik() {
+  try { const n = await API.tarik(S.admin, S.tgl); toast(n ? `${n} invoice baru ditarik` : 'Tidak ada invoice baru'); await loadMon(); } catch (e) { toast(e.message); }
+}
+function editCust(nama) {
+  const c = nama === -1 ? {nama: '', alamat: '', hp: '', patokan: '', lat: '', lng: ''} : S.cust.find(x => x.nama === nama);
+  sheet(`<h3>${nama === -1 ? 'Customer baru' : esc(c.nama)}</h3><div class="sub">Nama harus sama dengan nama customer di Data Penjualan.</div>
+    <label class="f" style="margin-top:0">Nama customer</label><input class="i" id="cn" value="${esc(c.nama)}" ${nama === -1 ? '' : 'readonly'}>
+    <label class="f">Alamat lengkap</label><textarea class="i" id="ca">${esc(c.alamat)}</textarea>
+    <label class="f">No. HP / WA penerima</label><input class="i" id="ch" inputmode="tel" value="${esc(c.hp)}">
+    <label class="f">Patokan / jam terima</label><input class="i" id="cp" value="${esc(c.patokan)}">
+    <label class="f">Titik peta (lat, lng) — tempel dari Google Maps</label><input class="i" id="cl" placeholder="-6.5971, 106.8060" value="${c.lat ? c.lat + ', ' + c.lng : ''}">
+    <div class="err" id="serr"></div>
+    <div class="row"><button class="btn b-line" style="flex:.6" onclick="closeSheet()">Batal</button><button class="btn b-dark" onclick="simpanCust()">Simpan</button></div>`);
+}
+async function simpanCust() {
+  const nama = $('#cn').value.trim(); if (!nama) return $('#serr').textContent = 'Nama wajib diisi.';
+  const ll = $('#cl').value.split(',').map(s => parseFloat(s.trim()));
+  const c = {nama, alamat: $('#ca').value.trim(), hp: $('#ch').value.trim(), patokan: $('#cp').value.trim(),
+    lat: isFinite(ll[0]) ? ll[0] : null, lng: isFinite(ll[1]) ? ll[1] : null};
+  try { await API.custSave(S.admin, c); S.cust = null; closeSheet(); toast('Customer tersimpan'); await loadMon(); }
+  catch (e) { $('#serr').textContent = e.message; }
+}
+
+/* ---------- start ---------- */
+if (S.sess) loadTugas(); else if (S.admin) { S.mode = 'admin'; loadMon(); } else render();
+</script>
+</body>
+</html>
