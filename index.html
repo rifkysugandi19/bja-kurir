@@ -34,6 +34,7 @@ main{flex:1;padding:14px 14px calc(96px + var(--sb))}
 /* cards */
 .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid var(--line)}
 .h{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:18px 2px 8px}
+.dbar{display:flex;align-items:flex-end;gap:3px;height:130px}.dcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}.dstack{width:100%;max-width:26px;display:flex;flex-direction:column-reverse;border-radius:4px 4px 0 0;overflow:hidden;min-height:2px;background:#eee}.dstack i{display:block;min-height:0}.dcol small{font-size:9.5px;color:var(--mut);margin-top:4px;white-space:nowrap}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer}
 .stat b{display:block;font-size:22px;line-height:1.1}
@@ -199,7 +200,8 @@ const Live = {
   tarik: (pw, tgl) => Live.rpc('admin_tarik_invoice', {p_pass: pw, p_tanggal: tgl}),
   assign: (pw, id, k, u) => Live.rpc('admin_assign', {p_pass: pw, p_id: id, p_kurir_id: k, p_urutan: u}),
   custList: pw => Live.rpc('admin_customer_list', {p_pass: pw}),
-  custSave: (pw, c) => Live.rpc('admin_customer_simpan', {p_pass: pw, p: c})
+  custSave: (pw, c) => Live.rpc('admin_customer_simpan', {p_pass: pw, p: c}),
+  ringkas: (pw, hari) => Live.rpc('admin_ringkasan', {p_pass: pw, p_hari: hari})
 };
 
 /* ---------- DEMO: data contoh, disimpan di browser ---------- */
@@ -277,6 +279,7 @@ const Demo = (() => {
     async monitor(pw, tgl) { if (pw !== 'admin') throw new Error('Password salah (demo: admin)'); return wait({kurir: KURIR, tugas: day(tgl).map(pack)}); },
     async tarik(pw, tgl) { day(tgl); save(); return wait(0, 500); },
     async assign(pw, id, k, u) { const t = Object.values(db.days).flat().find(x => x.id === id); t.kurir_id = k; t.urutan = u; save(); return wait(null); },
+    async ringkas() { return wait({rows: [], belum_tarik: [], master: {total: db.cust.length, alamat: db.cust.filter(c => c.alamat).length, hp: db.cust.filter(c => c.hp).length, maps: 0}, kurir: KURIR.map(k => k.nama)}); },
     async custList() { return wait([...db.cust].sort((a, b) => a.nama.localeCompare(b.nama))); },
     async custSave(pw, c) {
       const i = db.cust.findIndex(x => x.nama.toLowerCase() === c.nama.toLowerCase());
@@ -296,7 +299,7 @@ const S = {
   sess: store.get('sess', null),       // {token,id,nama} kurir
   admin: store.get('admin', null),     // password admin (disimpan di perangkat admin)
   mode: 'kurir', tgl: today(), tugas: [], filter: 'semua', view: 'list', cur: null,
-  mon: null, atab: 'ringkas', cust: null, kurirList: null, pin: '', pickK: null
+  mon: null, atab: 'ringkas', dash: null, dhari: 7, cust: null, kurirList: null, pin: '', pickK: null
 };
 function render() {
   const el = $('#app');
@@ -560,7 +563,7 @@ async function loadMon() {
 function viewAdmin() {
   const m = S.mon || {kurir: [], tugas: []}, T = m.tugas;
   const cnt = s => T.filter(t => t.status === s).length;
-  const tabs = [['ringkas','Ringkasan'],['tugas','Semua kiriman'],['assign',`Belum ada kurir (${T.filter(t => !t.kurir_id).length})`],['cust','Master customer']];
+  const tabs = [['ringkas','Harian'],['dash','Dashboard'],['tugas','Semua kiriman'],['assign',`Belum ada kurir (${T.filter(t => !t.kurir_id).length})`],['cust','Master customer']];
   let body = '';
   if (S.atab === 'ringkas') {
     body = `<div class="stats">${[['semua','Total',T.length],['jalan','Jalan',cnt('jalan')],['terkirim','Terkirim',cnt('terkirim')],['gagal','Gagal',cnt('gagal')]]
@@ -573,6 +576,8 @@ function viewAdmin() {
           <div class="mini">${kt.filter(t => t.status === 'terkirim').length}/${kt.length} terkirim${kt.filter(t => t.status === 'gagal').length ? ` · ${kt.filter(t => t.status === 'gagal').length} gagal` : ''}${last ? ` · terakhir: ${esc(last.customer_nama)} ${jam(last.waktu_selesai || last.waktu_jalan)}` : ''}</div>
           <div class="prog"><i style="width:${w('terkirim')};background:var(--ok)"></i><i style="width:${w('gagal')};background:var(--red)"></i><i style="width:${w('jalan')};background:var(--blue)"></i></div></div></div></div>`; }).join('')}
       ${T.filter(t => t.status === 'gagal').length ? `<div class="h">Perlu tindak lanjut</div>${T.filter(t => t.status === 'gagal').map(adminRow).join('')}` : ''}`;
+  } else if (S.atab === 'dash') {
+    body = viewDash();
   } else if (S.atab === 'tugas') {
     const f = S.afil || 'semua'; const L = T.filter(t => f === 'semua' || t.status === f);
     body = `<div class="tabs">${['semua','siap','jalan','terkirim','gagal'].map(s => `<button class="${f === s ? 'on' : ''}" onclick="S.afil='${s}';render()">${s === 'semua' ? 'Semua' : ST[s]}</button>`).join('')}</div>
@@ -619,6 +624,68 @@ function adminDetail(id) {
       <input class="i" id="au_${t.id}" type="number" value="${t.urutan || ''}" placeholder="Urutan" style="max-width:90px">
       <button class="btn sm b-dark" style="flex:none" onclick="assign('${t.id}').then(closeSheet)">Simpan</button></div></div>
     <div class="row"><button class="btn b-line" onclick="closeSheet()">Tutup</button></div>`);
+}
+
+/* ---------- DASHBOARD ADMIN (rekap periode) ---------- */
+async function loadDash(hari) {
+  if (hari != null) S.dhari = hari;
+  S.dashLoading = true; render();
+  try { S.dash = await API.ringkas(S.admin, 90); S.dashAt = new Date(); } catch (e) { toast(e.message); }
+  S.dashLoading = false; render();
+}
+const addDays = (s, n) => { const d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + n); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const tglPendek = s => new Date(s + 'T00:00:00').toLocaleDateString('id-ID', {day: 'numeric', month: 'short'});
+function viewDash() {
+  if (!S.dash) { if (!S.dashLoading) loadDash(); return '<div class="empty">Memuat dashboard…</div>'; }
+  const D = S.dash, hari = S.dhari, dari = addDays(today(), -hari);
+  const R = (D.rows || []).filter(r => r.tgl >= dari);
+  const ok = R.filter(r => r.status === 'terkirim').length, fail = R.filter(r => r.status === 'gagal').length, open = R.length - ok - fail;
+  const dur = R.filter(r => r.status === 'terkirim' && r.jalan && r.selesai).map(r => (new Date(r.selesai) - new Date(r.jalan)) / 60000).filter(m => m >= 0 && m < 1440);
+  const avg = dur.length ? dur.reduce((a, b) => a + b, 0) / dur.length : null;
+  const rate = (ok + fail) ? Math.round(ok / (ok + fail) * 100) + '%' : '—';
+  // per hari
+  const days = []; for (let d = addDays(today(), -Math.min(Math.max(hari, 6), 30)); d <= today(); d = addDays(d, 1)) days.push(d);
+  const per = days.map(d => { const x = R.filter(r => r.tgl === d); return {d, ok: x.filter(r => r.status === 'terkirim').length, fail: x.filter(r => r.status === 'gagal').length, n: x.length}; });
+  const mx = Math.max(1, ...per.map(p => p.n));
+  // per kurir
+  const byK = {}; R.forEach(r => { const k = r.kurir || '(belum ditugaskan)'; const o = byK[k] || (byK[k] = {n: 0, ok: 0, fail: 0, dur: []}); o.n++;
+    if (r.status === 'terkirim') { o.ok++; if (r.jalan && r.selesai) { const m = (new Date(r.selesai) - new Date(r.jalan)) / 60000; if (m >= 0 && m < 1440) o.dur.push(m); } }
+    if (r.status === 'gagal') o.fail++; });
+  const ks = Object.keys(byK).sort((a, b) => byK[b].n - byK[a].n);
+  // alasan gagal
+  const al = {}; R.filter(r => r.status === 'gagal').forEach(r => { const k = (r.alasan || 'Tanpa alasan').trim(); al[k] = (al[k] || 0) + 1; });
+  const alk = Object.keys(al).sort((a, b) => al[b] - al[a]);
+  const M = D.master || {}, t = M.total || 0, pct = n => t ? Math.round(n / t * 100) : 0;
+  const bt = D.belum_tarik || [], btTot = bt.reduce((s, x) => s + x.n, 0);
+  const bar = (n, of, col) => `<div class="prog" style="margin-top:6px"><i style="width:${of ? n / of * 100 : 0}%;background:${col || 'var(--red)'}"></i></div>`;
+  return `<div class="tabs">${[[0, 'Hari ini'], [7, '7 hari'], [30, '30 hari'], [90, '90 hari']].map(([h, l]) => `<button class="${hari === h ? 'on' : ''}" onclick="S.dhari=${h};render()">${l}</button>`).join('')}
+      <button onclick="loadDash()" title="Muat ulang">↻</button></div>
+    <div class="stats">
+      <div class="stat"><b>${R.length}</b><span>Kiriman</span></div>
+      <div class="stat"><b style="color:var(--ok)">${ok}</b><span>Terkirim</span></div>
+      <div class="stat"><b style="color:var(--red)">${fail}</b><span>Gagal</span></div>
+      <div class="stat"><b>${open}</b><span>Belum selesai</span></div></div>
+    <div class="stats" style="grid-template-columns:1fr 1fr">
+      <div class="stat"><b>${rate}</b><span>Tingkat berhasil</span></div>
+      <div class="stat"><b>${avg == null ? '—' : avg >= 60 ? (avg / 60).toFixed(1).replace('.', ',') + ' jam' : Math.round(avg) + ' mnt'}</b><span>Rata-rata waktu antar</span></div></div>
+    <div class="h">Kiriman per hari</div>
+    <div class="card"><div class="dbar">${per.map(p => `<div class="dcol" title="${tglPendek(p.d)}: ${p.n} kiriman"><div class="dstack" style="height:${p.n / mx * 100}%">
+        <i style="flex:${p.ok};background:var(--ok)"></i><i style="flex:${p.fail};background:var(--red)"></i><i style="flex:${p.n - p.ok - p.fail};background:#cfcfcf"></i></div>
+        <small>${per.length > 10 ? (p.d.slice(8) === '01' || p.d === per[0].d ? tglPendek(p.d) : p.d.slice(8)) : tglPendek(p.d)}</small></div>`).join('')}</div>
+      <div class="mini" style="margin-top:8px"><span style="color:var(--ok)">■</span> terkirim &nbsp;<span style="color:var(--red)">■</span> gagal &nbsp;<span style="color:#bbb">■</span> belum selesai</div></div>
+    <div class="h">Kinerja per kurir</div>
+    ${ks.length ? ks.map(k => { const o = byK[k], a = o.dur.length ? Math.round(o.dur.reduce((x, y) => x + y, 0) / o.dur.length) : null;
+      return `<div class="card"><div class="kr"><div class="av">${esc(k[0])}</div><div class="bd"><b>${esc(k)}</b>
+        <div class="mini">${o.ok}/${o.n} terkirim${o.fail ? ` · ${o.fail} gagal` : ''}${(o.ok + o.fail) ? ` · ${Math.round(o.ok / (o.ok + o.fail) * 100)}% berhasil` : ''}${a != null ? ` · rata² ${a} mnt` : ''}</div>
+        ${bar(o.ok, o.n, 'var(--ok)')}</div></div></div>`; }).join('') : '<div class="empty">Belum ada kiriman di periode ini.</div>'}
+    <div class="h">Alasan gagal kirim</div>
+    <div class="card">${alk.length ? alk.map(k => `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;gap:8px"><span>${esc(k)}</span><b>${al[k]}</b></div>${bar(al[k], al[alk[0]])}</div>`).join('') : '<div class="mini">Tidak ada kiriman gagal ✓</div>'}</div>
+    <div class="h">Kesiapan data</div>
+    <div class="card">${[['Customer punya alamat', M.alamat || 0], ['Customer punya no. HP', M.hp || 0], ['Customer punya link Maps', M.maps || 0]].map(([l, n]) =>
+        `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;gap:8px"><span>${l}</span><b>${n} / ${t} (${pct(n)}%)</b></div>${bar(n, t)}</div>`).join('')}
+      <div style="display:flex;justify-content:space-between;gap:8px;margin-top:4px"><span>Invoice 14 hari terakhir belum ditarik</span><b>${btTot}</b></div>
+      ${bt.length ? `<div class="mini" style="margin-top:4px">${bt.slice(0, 7).map(x => `<a href="#" onclick="S.tgl='${x.tgl}';S.atab='ringkas';loadMon();return false" style="color:var(--red)">${tglPendek(x.tgl)}: ${x.n}</a>`).join(' · ')}</div>` : ''}</div>
+    <div class="mini" style="text-align:center;margin:6px 0 20px">Data ${S.dashAt ? 'per ' + jam(S.dashAt) : ''} · rekap 90 hari terakhir</div>`;
 }
 async function assign(id) {
   const k = +$('#ak_' + id).value, u = +$('#au_' + id).value || null;
