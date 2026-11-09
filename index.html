@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#111111">
+<meta name="theme-color" content="#190f12">
+<link rel="icon" href="https://ibrntiqyntlazffgrgix.supabase.co/storage/v1/object/public/aset/logo_bja.jpg">
+<link rel="apple-touch-icon" href="https://ibrntiqyntlazffgrgix.supabase.co/storage/v1/object/public/aset/logo_bja.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="BJA Kurir">
@@ -132,6 +134,36 @@ textarea.i{min-height:70px;resize:vertical}
 .toast{position:fixed;left:50%;bottom:calc(90px + var(--sb));transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:60;max-width:90%;text-align:center}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* ===== Brand BJA (disamakan dengan Sales Dashboard BJA) ===== */
+:root{--bg:#f3eaea;--line:#ecdcdc;--ink:#1b1113;--ink2:#4a3a3d;--mut:#8c7a7d;--red:#d4162e;--red-d:#7a0f1a;--red-t:#fbecec;--side1:#190f12;--side2:#241318}
+html,body{font-family:'Segoe UI',Inter,system-ui,-apple-system,Roboto,Arial,sans-serif}
+.app{background:var(--bg)}
+.top{background:linear-gradient(185deg,var(--side1),var(--side2));box-shadow:0 2px 12px rgba(25,15,18,.35)}
+.top .ttl small{color:#cdb9bc}
+.top .act{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14)}
+.logo{width:auto;height:38px;padding:4px 8px;background:#fff;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.logo img{height:30px;width:auto;display:block}
+.card,.stat{border-color:var(--line)}
+.tabs button{border-color:var(--line)}
+.tabs button.on{background:var(--red);border-color:var(--red);color:#fff}
+.seg{background:#efe3e4}
+.seg button.on{color:var(--red-d)}
+.b-dark{background:linear-gradient(135deg,var(--red),#b01124);color:#fff}
+.task .no{background:var(--red)}
+.h{color:var(--red-d)}
+.kr .av{background:var(--red-t);color:var(--red-d)}
+.pinrow i{border-color:var(--red-d)}.pinrow i.f{background:var(--red)}
+input.i:focus,select.i:focus,textarea.i:focus{border-color:var(--red)}
+/* layar login seperti gerbang dashboard */
+.login{min-height:100vh;background:linear-gradient(135deg,#190f12,#3a171d);padding:calc(28px + var(--st)) 16px 40px;position:relative;overflow:hidden}
+.login .bullbg{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);width:340px;max-width:90%;opacity:.55;mix-blend-mode:screen;pointer-events:none}
+.gatecard{position:relative;z-index:1;background:#fff;border-radius:20px;padding:24px 18px 18px;box-shadow:0 24px 70px rgba(0,0,0,.5);max-width:420px;margin:0 auto}
+.gatecard .glogo{width:150px;margin:0 auto 6px;display:block}
+.gatecard h1{text-align:center;font-size:16px;margin:4px 0 2px;color:var(--red-d);letter-spacing:.4px;text-transform:uppercase}
+.gatecard .gsub{text-align:center;color:var(--mut);font-size:12.5px;margin:0 0 16px}
+.gatecard .card{border:0;padding:4px 2px 0;margin:0}
+.gatecard .keys button{background:#faf5f5;border-color:var(--line)}
 </style>
 </head>
 <body>
@@ -309,15 +341,17 @@ function render() {
   el.innerHTML = viewList();
 }
 const demoBar = () => LIVE ? '' : `<div class="demo">Mode demo · data contoh, tersimpan di HP ini saja</div>`;
-const topBar = (title, sub, back, act) => `<div class="top">${back ? `<button class="back" onclick="${back}">‹</button>` : `<div class="logo">BJA</div>`}
+const ASET = 'https://ibrntiqyntlazffgrgix.supabase.co/storage/v1/object/public/aset/', LOGO_URL = ASET + 'logo_bja.jpg', BULL_URL = ASET + 'bull.jpg';
+const topBar = (title, sub, back, act) => `<div class="top">${back ? `<button class="back" onclick="${back}">‹</button>` : `<div class="logo"><img src="${LOGO_URL}" alt="BJA"></div>`}
   <div class="ttl"><b>${title}</b><small>${sub || ''}</small></div>${act || ''}</div>${demoBar()}`;
 
 /* ---------- LOGIN ---------- */
 function viewLogin() {
   if (!S.kurirList) { API.kurirDaftar().then(l => { S.kurirList = l; render(); }).catch(e => toast(e.message)); }
   const isAdm = S.loginTab === 'admin';
-  return `<div class="login">
-    <div class="hero"><div class="logo">BJA</div><h1>BJA Kurir</h1><p>Status pengiriman frozen meat — daftar antar, detail item, bukti terima.</p></div>
+  return `<div class="login"><img class="bullbg" src="${BULL_URL}" alt="">
+    <div class="gatecard"><img class="glogo" src="${LOGO_URL}" alt="BJA"><h1>BJA Kurir</h1>
+    <p class="gsub">CV Badansa Jaya Abadi — pengiriman frozen meat</p>
     ${demoBar()}
     <div class="seg" style="margin-top:12px"><button class="${isAdm ? '' : 'on'}" onclick="S.loginTab='kurir';render()">Kurir</button>
       <button class="${isAdm ? 'on' : ''}" onclick="S.loginTab='admin';render()">Admin / Gudang</button></div>
@@ -333,7 +367,7 @@ function viewLogin() {
           <div class="keys">${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(k => k === '' ? '<span></span>' : `<button onclick="pinKey('${k}')">${k}</button>`).join('')}</div>` : ''}
         <div class="err" id="lerr"></div>
         ${LIVE ? '' : '<div class="hint">Demo: PIN semua kurir 1234</div>'}</div>`}
-  </div>`;
+  </div></div>`;
 }
 async function pinKey(k) {
   if (k === '⌫') S.pin = S.pin.slice(0, -1); else if (S.pin.length < 4) S.pin += k;
